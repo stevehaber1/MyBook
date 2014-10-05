@@ -30,6 +30,7 @@ public class OddParser {
 	}
 	
 	private ArrayList<Match> parseESPNNFLMatchesTable(){
+		ArrayList<Match> matchList = new ArrayList<Match>();
 		try {
 	         Document doc = Jsoup.connect(ServerInstance.props.getNFLOddsURL()).get();
 	         
@@ -55,6 +56,8 @@ public class OddParser {
 	            
 	            Match a = new Match();
 	            
+	            a.setMatchDate(nflWeek.text());
+	            
 	            a.setTeam1(rowItems.get(0).text().split(" ")[0]);
 	            a.setTeam2(rowItems.get(0).text().split(" ")[1]);
 	            
@@ -71,15 +74,36 @@ public class OddParser {
 	            a.setOverUnder_OverLine(rowItems.get(3).text().split(" ")[2].replace(",",""));  
 	            a.setOverUnder_UnderLine(rowItems.get(3).text().split(" ")[4].replace(")",""));
 	            
+	            if(SQLiteJDBC.ExecuteSelectGetRowCount("SELECT * FROM Matches WHERE matchDate='"+a.getMatchDate()+"' AND team1 = '"+a.getTeam1()+"' AND team2= '"+a.getTeam2()+"'") > 0)
+	            {
+	            	//Execute update
+	            	Match matchToCompare = SQLiteJDBC.GetMatchFromSQL("SELECT * FROM Matches WHERE matchDate='"+a.getMatchDate()+"' AND team1 = '"+a.getTeam1()+"' AND team2= '"+a.getTeam2()+"'");
+	            	
+	            	if(!matchToCompare.getOverUnder().equals(a.getOverUnder())){
+	            		SQLiteJDBC.ExecuteInsertUpdate(SQL)
+	            	}
+	            	
+	            	log.info("Execute update");
+	            }
+	            else 
+	            {
+	            	//execute insert
+	            	String SQL = "INSERT INTO Matches (matchDate, team1, team2, mlTeam1, mlTeam2, overunder, overUnder_OverLine, overUnder_UnderLine, spreadTeam1, spreadTeam2, spreadTeam1ML, spreadTeam2ML)" +
+	            		" VALUES ('"+a.getMatchDate()+"', '"+a.getTeam1()+"', '"+a.getTeam2()+"', '"+a.getMlTeam1()+"', '"+a.getMlTeam2()+"', '"+a.getOverUnder()+"', '"+a.getOverUnder_OverLine()+"', '"+a.getOverUnder_UnderLine()+"', '"+a.getSpreadTeam1()+"', '"+a.getSpreadTeam2()+"', '"+a.getSpreadTeam1ML()+"', '"+a.getSpreadTeam2ML()+"')";
 	            
-	            
+	            	SQLiteJDBC.ExecuteInsertUpdate(SQL);
+	            	
+	            }
 	            System.out.println(a);
+	            //System.out.println("\t"+SQL);
+	            
+	            matchList.add(a);
 	         }
 
 	      } catch (IOException e) {
 	         e.printStackTrace();
 	      }
-		return null;
+		return matchList;
 	}
 
 }

@@ -3,7 +3,14 @@ package org.MyBook.Server;
 public class Match {
 	private String matchDate;
 	
+	private int matchID;
 	
+	public int getMatchID() {
+		return matchID;
+	}
+	public void setMatchID(int matchID) {
+		this.matchID = matchID;
+	}
 	public String getMatchDate() {
 		return matchDate;
 	}

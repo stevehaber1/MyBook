@@ -3,7 +3,6 @@ package org.MyBook;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ServerTest {
@@ -14,6 +13,7 @@ public class ServerTest {
 	
 	private static final Logger log = Logger.getLogger(Thread.currentThread().getStackTrace()[0].getClassName() );
 	
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		
 		
