@@ -59,5 +59,14 @@ public class ServerConfigurationProperties {
 	public void setUpdateInterval(int updateInterval) {
 		UpdateInterval = updateInterval;
 	}
+	private String NFLResultsURL;
+
+	public String getNFLResultsURL() {
+		return NFLResultsURL;
+	}
+
+	public void setNFLResultsURL(String nFLResultsURL) {
+		NFLResultsURL = nFLResultsURL;
+	}
 	
 }

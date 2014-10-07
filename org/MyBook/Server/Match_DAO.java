@@ -1,6 +1,6 @@
 package org.MyBook.Server;
 
-public class Match {
+public class Match_DAO {
 	private String matchDate;
 	
 	private int matchID;

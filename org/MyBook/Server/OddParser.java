@@ -13,24 +13,9 @@ public class OddParser {
 
 	private static final Logger log = Logger.getLogger(Thread.currentThread().getStackTrace()[0].getClassName() );
 	
-	public ArrayList<Match> LoadESPNNFLOdds() {
-		// TODO Auto-generated method stub
-		ArrayList<Match> matches = new ArrayList<Match>();
-		log.info("Initial download of NFL matches...");
-		parseESPNNFLMatchesTable();
-		return matches;
 		
-	}
-
-	public ArrayList<Match> UpdateNFLData(ArrayList<Match> nflmatches) {
-		log.info("Updating NLF matches with new information");
-		
-		return nflmatches;
-		
-	}
-	
-	private ArrayList<Match> parseESPNNFLMatchesTable(){
-		ArrayList<Match> matchList = new ArrayList<Match>();
+	ArrayList<Match_DAO> parseESPNNFLMatchesTable(){
+		ArrayList<Match_DAO> matchList = new ArrayList<Match_DAO>();
 		try {
 	         Document doc = Jsoup.connect(ServerInstance.props.getNFLOddsURL()).get();
 	         
@@ -54,7 +39,7 @@ public class OddParser {
 	            Element row = tableRowElements.get(i);
 	            Elements rowItems = row.select("td");
 	            
-	            Match a = new Match();
+	            Match_DAO a = new Match_DAO();
 	            
 	            a.setMatchDate(nflWeek.text());
 	            
@@ -74,16 +59,27 @@ public class OddParser {
 	            a.setOverUnder_OverLine(rowItems.get(3).text().split(" ")[2].replace(",",""));  
 	            a.setOverUnder_UnderLine(rowItems.get(3).text().split(" ")[4].replace(")",""));
 	            
-	            if(SQLiteJDBC.ExecuteSelectGetRowCount("SELECT * FROM Matches WHERE matchDate='"+a.getMatchDate()+"' AND team1 = '"+a.getTeam1()+"' AND team2= '"+a.getTeam2()+"'") > 0)
+	            
+	            Match_DAO matchToCompare = SQLiteJDBC.ExecuteSelectGetMatchRow("SELECT * FROM Matches WHERE matchDate='"+a.getMatchDate()+"' AND team1 = '"+a.getTeam1()+"' AND team2= '"+a.getTeam2()+"'");
+	            
+	            if(matchToCompare != null)
 	            {
-	            	//Execute update
-	            	Match matchToCompare = SQLiteJDBC.GetMatchFromSQL("SELECT * FROM Matches WHERE matchDate='"+a.getMatchDate()+"' AND team1 = '"+a.getTeam1()+"' AND team2= '"+a.getTeam2()+"'");
+	            	//row object was found in the database - lets compare it and run an update if its different
+	            	//matchToCompare is the old object (stored in db)
+	            	//a is the new object (geneted just before)
+	            	boolean updatesMade = false;
+	            	if(!a.getMlTeam1().equals(matchToCompare.getMlTeam1())) { updatesMade=true; log.info("Update found in the Team 1 ML for the "+a.getTeam1()+"/"+a.getTeam2()+" match."); SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET mlTeam1='"+a.getMlTeam1()+"' WHERE matchID="+matchToCompare.getMatchID()); }
+	            	if(!a.getMlTeam2().equals(matchToCompare.getMlTeam2())) { updatesMade=true; log.info("Update found in the Team 2 ML for the "+a.getTeam1()+"/"+a.getTeam2()+" match.");  SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET mlTeam2='"+a.getMlTeam2()+"' WHERE matchID="+matchToCompare.getMatchID()); }
+	            	if(!a.getOverUnder().equals(matchToCompare.getOverUnder()))  { updatesMade=true; log.info("Update found in the OverUnder for the "+a.getTeam1()+"/"+a.getTeam2()+" match."); SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET overunder='"+a.getOverUnder()+"' WHERE matchID="+matchToCompare.getMatchID()); }
+	            	if(!a.getOverUnder_OverLine().equals(matchToCompare.getOverUnder_OverLine()))  { updatesMade=true; log.info("Update found in the Over Line for the "+a.getTeam1()+"/"+a.getTeam2()+" match."); SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET overUnder_OverLine='"+a.getOverUnder_OverLine()+"' WHERE matchID="+matchToCompare.getMatchID()); }
+	            	if(!a.getOverUnder_UnderLine().equals(matchToCompare.getOverUnder_UnderLine())) { updatesMade=true; log.info("Update found in the Under Line for the "+a.getTeam1()+"/"+a.getTeam2()+" match.");  SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET overUnder_UnderLine='"+a.getOverUnder_UnderLine()+"' WHERE matchID="+matchToCompare.getMatchID()); }
+	            	if(!a.getSpreadTeam1().equals(matchToCompare.getSpreadTeam1()))  { updatesMade=true; log.info("Update found in the Team 1 Spread for the "+a.getTeam1()+"/"+a.getTeam2()+" match."); SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET spreadTeam1='"+a.getSpreadTeam1()+"' WHERE matchID="+matchToCompare.getMatchID()); }
+	            	if(!a.getSpreadTeam2().equals(matchToCompare.getSpreadTeam2()))  { updatesMade=true; log.info("Update found in the Team 2 Spread for the "+a.getTeam1()+"/"+a.getTeam2()+" match."); SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET spreadTeam2='"+a.getSpreadTeam2()+"' WHERE matchID="+matchToCompare.getMatchID()); }
+	            	if(!a.getSpreadTeam1ML().equals(matchToCompare.getSpreadTeam1ML()))  { updatesMade=true; log.info("Update found in the ML Spread for Team 1 for the "+a.getTeam1()+"/"+a.getTeam2()+" match."); SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET spreadTeam1ML='"+a.getSpreadTeam1ML()+"' WHERE matchID="+matchToCompare.getMatchID()); }
+	            	if(!a.getSpreadTeam2ML().equals(matchToCompare.getSpreadTeam2ML())) { updatesMade=true; log.info("Update found in the ML Spread for Team 2 for the "+a.getTeam1()+"/"+a.getTeam2()+" match.");  SQLiteJDBC.ExecuteInsertUpdate("UPDATE Matches SET spreadTeam2ML='"+a.getSpreadTeam2ML()+"' WHERE matchID="+matchToCompare.getMatchID()); }
 	            	
-	            	if(!matchToCompare.getOverUnder().equals(a.getOverUnder())){
-	            		SQLiteJDBC.ExecuteInsertUpdate(SQL)
-	            	}
+	            	if(!updatesMade)log.info("No updates made to the "+a.getTeam1()+"/"+a.getTeam2()+" match.");
 	            	
-	            	log.info("Execute update");
 	            }
 	            else 
 	            {

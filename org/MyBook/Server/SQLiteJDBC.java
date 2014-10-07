@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,7 +39,7 @@ public class SQLiteJDBC {
 	    
 	}
 	
-	public static int ExecuteSelectGetRowCount(String SQL)
+	public static Match_DAO ExecuteSelectGetMatchRow(String SQL)
 	{
 		
 		Connection c = null;
@@ -51,45 +52,9 @@ public class SQLiteJDBC {
 	      
 	      
 	      stmt = c.createStatement();
-	      ResultSet results = stmt.executeQuery(SQL);
-	      int rowCount = 0;
-	      while ( results.next() ) {
-	          rowCount++;
-	       }
-	      log.info(SQL + " executed successfully. ");
-	      
-	      results.close();
-	      stmt.close();
-	      c.commit();
-	      c.close();
-	      
-	      log.log(Level.CONFIG, "Closed database successfully");
-	      
-	      return rowCount;
-	      
-	    } catch ( Exception e ) {
-	      log.info(e.toString());
-	      return -1;
-	    }
-	    
-	}
-	
-	public static Match GetMatchFromSQL(String SQL)
-	{
-		Connection c = null;
-	    Statement stmt = null;
-	    try {
-	      Class.forName("org.sqlite.JDBC");
-	      c = DriverManager.getConnection("jdbc:sqlite:db.sqlite");
-	      c.setAutoCommit(false);
-	      log.log(Level.CONFIG, "Opened database successfully");
-	      
-	      
-	      stmt = c.createStatement();
 	      ResultSet rs = stmt.executeQuery(SQL);
 	      int rowCount = 0;
-	      
-	      Match a = new Match();
+	      Match_DAO a = new Match_DAO();
 	      
 	      while ( rs.next() ) {
 	    	  int matchID = rs.getInt("matchID");
@@ -107,7 +72,6 @@ public class SQLiteJDBC {
 	          String  spreadTeam2ML = rs.getString("spreadTeam2ML");
 	          
 	          
-	          
 	          a.setMatchDate(matchDate);
 	          a.setMatchID(matchID);
 	          a.setMlTeam1(mlTeam1);
@@ -122,35 +86,185 @@ public class SQLiteJDBC {
 	          a.setTeam1(team1);
 	          a.setTeam2(team2);
 	          
-	          
+	          rowCount++;
 	       }
 	      
 	      log.info(SQL + " executed successfully. ");
-	      
-	      
 	      
 	      rs.close();
 	      stmt.close();
 	      c.commit();
 	      c.close();
 	      
-	      
-	      
 	      log.log(Level.CONFIG, "Closed database successfully");
-	      
-	      if (rowCount > 1)
-	      {
-	    	  log.info("More than one game with the identical criteria was found. Returning null");
+	      if(rowCount == 1){
+	    	  return a;
+	      }
+	      else {
 	    	  return null;
 	      }
-	      
-	      return a;
 	      
 	    } catch ( Exception e ) {
 	      log.info(e.toString());
 	      return null;
 	    }
-	
+	    
 	}
+	
+	public static MatchResults_DAO ExecuteSelectGetMatchResultsRow(String SQL)
+	{
+		
+		Connection c = null;
+	    Statement stmt = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      c = DriverManager.getConnection("jdbc:sqlite:db.sqlite");
+	      c.setAutoCommit(false);
+	      log.log(Level.CONFIG, "Opened database successfully");
+	      
+	      
+	      stmt = c.createStatement();
+	      ResultSet rs = stmt.executeQuery(SQL);
+	      int rowCount = 0;
+	      MatchResults_DAO a = new MatchResults_DAO();
+	      
+	      while ( rs.next() ) {
+	    	  //CREATE TABLE Results (resultsID integer primary key AUTOINCREMENT, matchDate varchar(20), team1 varchar(20), team2 varchar(20), team1Score varchar(20), team2Score varchar(20));
+	    	  int matchResultID = rs.getInt("resultsID");
+	          String matchDate = rs.getString("matchDate");
+	          String team1 = rs.getString("team1");
+	          String team2 = rs.getString("team2");
+	          String team1Score = rs.getString("team1Score");
+	          String team2Score = rs.getString("team2Score");
+	          
+	          a.setMatchResultID(matchResultID);
+	          a.setMatchDate(matchDate);
+	          a.setTeam1(team1);
+	          a.setTeam1Score(team1Score);
+	          a.setTeam2(team2);
+	          a.setTeam2Score(team2Score);
+	          
+	          rowCount++;
+	       }
+	      
+	      log.info(SQL + " executed successfully. ");
+	      
+	      rs.close();
+	      stmt.close();
+	      c.commit();
+	      c.close();
+	      
+	      log.log(Level.CONFIG, "Closed database successfully");
+	      if(rowCount == 1){
+	    	  return a;
+	      }
+	      else {
+	    	  return null;
+	      }
+	      
+	    } catch ( Exception e ) {
+	      log.info(e.toString());
+	      return null;
+	    }
+	    
+	}
+	
+	public static int SelectGetRowCount(String SQL)
+	{
+		
+		Connection c = null;
+	    Statement stmt = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      c = DriverManager.getConnection("jdbc:sqlite:db.sqlite");
+	      c.setAutoCommit(false);
+	      log.log(Level.CONFIG, "Opened database successfully");
+	      
+	      
+	      stmt = c.createStatement();
+	      ResultSet rs = stmt.executeQuery(SQL);
+	      int rowCount = 0;
+	            
+	      while ( rs.next() ) {
+	    	  
+	          
+	          rowCount++;
+	       }
+	      
+	      log.info(SQL + " executed successfully. ");
+	      
+	      rs.close();
+	      stmt.close();
+	      c.commit();
+	      c.close();
+	      
+	      log.log(Level.CONFIG, "Closed database successfully");
+	      return rowCount;
+	      
+	    } catch ( Exception e ) {
+	      log.info(e.toString());
+	      return -1;
+	    }
+	    
+	}
+	
+	public static ArrayList<Wagers_DAO> GetWagerList(){
+		
+		ArrayList<Wagers_DAO> wagers = new ArrayList<Wagers_DAO>();
+		Connection c = null;
+	    Statement stmt = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      c = DriverManager.getConnection("jdbc:sqlite:db.sqlite");
+	      c.setAutoCommit(false);
+	      log.log(Level.CONFIG, "Opened database successfully");
+	      
+	      
+	      stmt = c.createStatement();
+	      ResultSet rs = stmt.executeQuery("SELECT wagerID, matchID, amount, attribute, paidYet, userID FROM wagers WHERE paidYet='false'");
+	      @SuppressWarnings("unused")
+	      int rowCount = 0;
+	      
+	      
+	      while ( rs.next() ) {
+	    	  Wagers_DAO a = new Wagers_DAO();
+	    	  
+	    	  int wagerID = rs.getInt("wagerID");
+	          int matchID = rs.getInt("matchID");
+	          int userID = rs.getInt("userID");
+	          double amount = rs.getDouble("amount");
+	          String attribute = rs.getString("attribute");
+	          boolean paidYet = rs.getBoolean("paidYet");
+	          
+	          a.setAmount(amount);
+	          a.setAttribute(attribute);
+	          a.setMatchID(matchID);
+	          a.setPaidYet(paidYet);
+	          a.setWagerID(wagerID);
+	          a.setUserID(userID);
+	         	          
+	          rowCount++;
+	          wagers.add(a);
+	       }
+	      
+	      log.info("Wager selection executed successfully. ");
+	      
+	      rs.close();
+	      stmt.close();
+	      c.commit();
+	      c.close();
+	      
+	      log.log(Level.CONFIG, "Closed database successfully");
+	      
+	    } catch ( Exception e ) {
+	      log.info(e.toString());
+	    }
+	    return wagers;
+		
+		
+	}
+		
+	
+	
 	
 }

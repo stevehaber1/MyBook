@@ -13,17 +13,20 @@ public class ServerInstance {
 	
 	public static ServerConfigurationProperties props;
 	
-	private ArrayList<Match> nflmatches;
+	@SuppressWarnings("unused")
+	private ArrayList<Match_DAO> nflmatches;
 	
 	private OddParser oddParser;
+	private MatchResults matchResults;
 	
 	public ServerInstance(org.MyBook.Server.ServerConfigurationProperties configProps){
 		log.info("Starting server...");
 		props = configProps;
 		log.info("Beginning configuration of server");
 		
-		nflmatches = new ArrayList<Match>();
+		nflmatches = new ArrayList<Match_DAO>();
 		oddParser = new OddParser();
+		matchResults = new MatchResults();
 		
 		StartupProcess();
 		StartDaemon();
@@ -36,7 +39,8 @@ public class ServerInstance {
 		timer.scheduleAtFixedRate(new TimerTask(){
 			@Override
 			public void run(){
-				nflmatches = oddParser.UpdateNFLData(nflmatches);
+				oddParser.parseESPNNFLMatchesTable();
+				matchResults.UpdateMatchResults();
 			}
 
 		}, props.getUpdateInterval(),props.getUpdateInterval());
@@ -59,8 +63,13 @@ public class ServerInstance {
 				case "NFL":
 					props.setNFLOddsURL(properties.getProperty(odd+"OddsURL"));
 					props.setNFLOddsURLType(properties.getProperty(odd+"OddsURLType"));
+					props.setNFLResultsURL(properties.getProperty(odd+"ResultsURL"));
 					log.info("Downloading initial NFL Odds Information from "+ props.getNFLOddsURLType());
-					if(props.getNFLOddsURLType().equals("ESPN")) { nflmatches = oddParser.LoadESPNNFLOdds(); }
+					
+					
+					if(props.getNFLOddsURLType().equals("ESPN")) { nflmatches = oddParser.parseESPNNFLMatchesTable(); }
+					matchResults.UpdateMatchResults();
+					
 					break;
 				case "NBA":
 					//props.setNBAOddsURL(properties.getProperty(odd+"OddsURL"));
