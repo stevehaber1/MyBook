@@ -26,7 +26,7 @@ public class SQLiteJDBC {
 	      stmt = c.createStatement();
 	      int results = stmt.executeUpdate(SQL);
 	      
-	      log.info(SQL + " executed successfully. "+results+ " rows updated");
+	      log.log(Level.CONFIG, SQL + " executed successfully. "+results+ " rows updated");
 	      
 	      stmt.close();
 	      c.commit();
@@ -89,7 +89,7 @@ public class SQLiteJDBC {
 	          rowCount++;
 	       }
 	      
-	      log.info(SQL + " executed successfully. ");
+	      log.log(Level.CONFIG, SQL + " executed successfully. ");
 	      
 	      rs.close();
 	      stmt.close();
@@ -147,7 +147,7 @@ public class SQLiteJDBC {
 	          rowCount++;
 	       }
 	      
-	      log.info(SQL + " executed successfully. ");
+	      log.log(Level.CONFIG,SQL + " executed successfully. ");
 	      
 	      rs.close();
 	      stmt.close();
@@ -191,7 +191,7 @@ public class SQLiteJDBC {
 	          rowCount++;
 	       }
 	      
-	      log.info(SQL + " executed successfully. ");
+	      log.log(Level.CONFIG,SQL + " executed successfully. ");
 	      
 	      rs.close();
 	      stmt.close();
@@ -247,7 +247,7 @@ public class SQLiteJDBC {
 	          wagers.add(a);
 	       }
 	      
-	      log.info("Wager selection executed successfully. ");
+	      log.log(Level.CONFIG,"Wager selection executed successfully. ");
 	      
 	      rs.close();
 	      stmt.close();
@@ -264,7 +264,95 @@ public class SQLiteJDBC {
 		
 	}
 		
+	public static double GetUserAccountBalance(int UserID)
+	{
+		
+		Connection c = null;
+	    Statement stmt = null;
+	    
+	    double balance = -9999;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      c = DriverManager.getConnection("jdbc:sqlite:db.sqlite");
+	      c.setAutoCommit(false);
+	      log.log(Level.CONFIG, "Opened database successfully");
+	      
+	      
+	      stmt = c.createStatement();
+	      ResultSet rs = stmt.executeQuery("SELECT balance FROM users WHERE userID="+UserID);
+	      int rowCount = 0;
+	            
+	      while ( rs.next() ) {
+	    	  
+	          balance = rs.getDouble(1);
+	          rowCount++;
+	       }
+	      
+	      log.log(Level.CONFIG,"Get Account Balance executed successfully. ");
+	      
+	      rs.close();
+	      stmt.close();
+	      c.commit();
+	      c.close();
+	      
+	      log.log(Level.CONFIG, "Closed database successfully");
+	      if(rowCount != 1){
+	    	  throw new Exception("More than one account found with that ID");
+	      }
+	      return balance;
+	      
+	    } catch ( Exception e ) {
+	      log.info(e.toString());
+	    }
+		return balance;
+	    
+	}
 	
+	public static String GetConfigValue(String key)
+	{
+		
+		Connection c = null;
+	    Statement stmt = null;
+	    
+	    String value = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      c = DriverManager.getConnection("jdbc:sqlite:db.sqlite");
+	      c.setAutoCommit(false);
+	      log.log(Level.CONFIG, "Opened database successfully");
+	      
+	      
+	      stmt = c.createStatement();
+	      String sql = "SELECT value FROM ConfigParameters WHERE lower(key)='"+key.toLowerCase()+"'";
+	      ResultSet rs = stmt.executeQuery(sql);
+	      int rowCount = 0;
+	            
+	      while ( rs.next() ) {
+	    	  
+	          value = rs.getString(1);
+	          rowCount++;
+	       }
+	      
+	      log.log(Level.CONFIG,"Get Config Value executed successfully.");
+	      
+	      rs.close();
+	      stmt.close();
+	      c.commit();
+	      c.close();
+	      
+	      log.log(Level.CONFIG, "Closed database successfully");
+	      if(rowCount != 1){
+	    	  throw new Exception("More than one account found with that ID");
+	      }
+	      return value;
+	      
+	    } catch ( Exception e ) {
+	      log.info(e.toString());
+	      log.info(e.getMessage());
+	    }
+		return value;
+	    
+	}
 	
 	
 }

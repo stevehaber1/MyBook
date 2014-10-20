@@ -18,6 +18,7 @@ public class ServerInstance {
 	
 	private OddParser oddParser;
 	private MatchResults matchResults;
+	private Balances accountBalances;
 	
 	public ServerInstance(org.MyBook.Server.ServerConfigurationProperties configProps){
 		log.info("Starting server...");
@@ -27,6 +28,7 @@ public class ServerInstance {
 		nflmatches = new ArrayList<Match_DAO>();
 		oddParser = new OddParser();
 		matchResults = new MatchResults();
+		accountBalances = new Balances();
 		
 		StartupProcess();
 		StartDaemon();
@@ -41,6 +43,7 @@ public class ServerInstance {
 			public void run(){
 				oddParser.parseESPNNFLMatchesTable();
 				matchResults.UpdateMatchResults();
+				accountBalances.UpdateAccountBalances();
 			}
 
 		}, props.getUpdateInterval(),props.getUpdateInterval());
